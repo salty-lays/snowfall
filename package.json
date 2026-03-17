@@ -1,16 +1,33 @@
 {
-  "name": "express-static-server",
-  "version": "1.0.0",
-  "description": "Simple Express server to serve static files",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+  "server": {
+    "framework": "express",
+    "port": 3000,
+    "routes": [
+      {
+        "path": "/",
+        "method": "GET",
+        "response": "Serve index.html from server directory"
+      }
+    ]
   },
-  "keywords": ["express", "node", "static-server"],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.19.2"
+  "socket_io": {
+    "events": {
+      "connection": {
+        "description": "Triggered when a client connects",
+        "handlers": {
+          "host_input": {
+            "description": "Receives data from host and broadcasts to all clients",
+            "emit": "update_field"
+          },
+          "stop_generation": {
+            "description": "Notifies all clients to stop generation",
+            "emit": "stop_generation"
+          }
+        }
+      }
+    }
+  },
+  "logging": {
+    "client_connected": "Console log when a client connects"
   }
 }
