@@ -1,18 +1,17 @@
-const express = require("express");
-const path = require("path");
-
+const express = require('express');
 const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 const PORT = 3000;
 
-// Serve static files from current folder
-app.use(express.static(path.join(__dirname)));
+// Serve client page
+app.get('/', (req,res)=>res.sendFile(__dirname+'/index.html'));
 
-// Route for homepage
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+// Socket handling
+io.on('connection', (socket)=>{
+  console.log('Client connected');
+  socket.on('host_input', (data)=>io.emit('update_field',data));
+  socket.on('stop_generation', ()=>io.emit('stop_generation'));
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+http.listen(PORT, ()=>console.log(`Server running at http://localhost:${PORT}`));
