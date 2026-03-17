@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora Register</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6c63ff;
+    --accent: #ff6584;
+    --bg: #f5f6fa;
+    --card-bg: #fff;
+    --text: #333;
+  }
+  * { box-sizing:border-box; margin:0; padding:0;}
+  body {
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    display:flex; justify-content:center; align-items:center; height:100vh;
+  }
+  .container {
+    background: var(--card-bg);
+    padding:36px 24px;
+    border-radius:16px;
+    width:360px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.1);
+    text-align:center;
+  }
+  h2 { color:var(--primary); margin-bottom:24px; }
+  input { width:100%; padding:12px; margin:8px 0; border-radius:8px; border:1px solid #ccc; font-size:1rem; }
+  button { width:100%; padding:12px; margin-top:16px; border:none; border-radius:8px; font-weight:600; background:var(--accent); color:#fff; cursor:pointer; transition:0.2s; }
+  button:hover { background:#ff4b6e; }
+  #msg { margin-top:12px; font-weight:600; }
+  a { color:var(--primary); text-decoration:none; font-weight:600; }
+  a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Aurora Register</h2>
+  <input id="username" type="text" placeholder="Username">
+  <input id="password" type="password" placeholder="Password">
+  <input id="confirmPassword" type="password" placeholder="Confirm Password">
+  <button id="registerBtn">Register</button>
+  <div id="msg"></div>
+  <p>Already have an account? <a href="login.html">Login here</a></p>
+</div>
+
+<script>
+const registerBtn = document.getElementById('registerBtn');
+const msg = document.getElementById('msg');
+
+registerBtn.addEventListener('click', () => {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const confirm = document.getElementById('confirmPassword').value.trim();
+
+  if(!username || !password || !confirm){
+    msg.textContent = 'Enter all fields.';
+    msg.style.color='red';
+    return;
+  }
+  if(password !== confirm){
+    msg.textContent = 'Passwords do not match.';
+    msg.style.color='red';
+    return;
+  }
+
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if(users[username]){
+    msg.textContent = 'Username already exists.';
+    msg.style.color='red';
+    return;
+  }
+
+  users[username] = password;
+  localStorage.setItem('users', JSON.stringify(users));
+  msg.textContent = 'Registered successfully! You can login now.';
+  msg.style.color='green';
+});
+</script>
+
+</body>
+</html>

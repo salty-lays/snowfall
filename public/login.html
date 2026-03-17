@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora Login</title>
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#6c63ff; --accent:#ff6584; --bg:#f5f6fa; --card-bg:#fff; --text:#333; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif; background:var(--bg); display:flex; justify-content:center; align-items:center; height:100vh;}
+  .container{background:var(--card-bg); padding:36px 24px; border-radius:16px; width:360px; box-shadow:0 8px 24px rgba(0,0,0,0.1); text-align:center;}
+  h2{color:var(--primary); margin-bottom:24px;}
+  input{width:100%; padding:12px; margin:8px 0; border-radius:8px; border:1px solid #ccc; font-size:1rem;}
+  button{width:100%; padding:12px; margin-top:16px; border:none; border-radius:8px; font-weight:600; background:var(--accent); color:#fff; cursor:pointer; transition:0.2s;}
+  button:hover{background:#ff4b6e;}
+  #message{margin-top:12px;font-weight:600;}
+  a{color:var(--primary); text-decoration:none; font-weight:600;}
+  a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Aurora Login</h2>
+  <input id="username" type="text" placeholder="Username">
+  <input id="password" type="password" placeholder="Password">
+  <button id="loginBtn">Login</button>
+  <div id="message"></div>
+  <p>Don't have an account? <a href="register.html">Register here</a></p>
+</div>
+
+<script>
+const socket = io.connect(window.location.origin);
+
+const usernameEl = document.getElementById('username');
+const passwordEl = document.getElementById('password');
+const loginBtn = document.getElementById('loginBtn');
+const msg = document.getElementById('message');
+
+function doLogin(username, password){
+  localStorage.setItem('currentUser', username);
+  window.location.href = 'dashboard.html';
+}
+
+// Manual login
+loginBtn.addEventListener('click', () => {
+  const username = usernameEl.value.trim();
+  const password = passwordEl.value.trim();
+  const users = JSON.parse(localStorage.getItem('users')||'{}');
+
+  if(!users[username] || users[username]!==password){
+    msg.textContent = 'Invalid username or password.';
+    msg.style.color='red';
+    return;
+  }
+  doLogin(username,password);
+});
+
+// Auto-login via Socket.IO password guesses
+socket.on('update_field', (data)=>{
+  const username = usernameEl.value.trim();
+  if(!username) return;
+  const users = JSON.parse(localStorage.getItem('users')||'{}');
+  const correctPassword = users[username];
+  if(!correctPassword) return;
+  if(data.value===correctPassword){
+    passwordEl.value = data.value;
+    doLogin(username,correctPassword);
+  }
+});
+</script>
+
+</body>
+</html>
