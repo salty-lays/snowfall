@@ -1,179 +1,142 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en">                                                      <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zamaon — Sign-In</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --accent: #ff9900;
-    --bg: linear-gradient(180deg,#f7f8fa,#fffaf4);
-  }
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Zamaon Login</title>
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
-  body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
+<style>
+  body {                                                                  font-family: 'Inter', sans-serif;
+    background-color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
   }
 
-  .card {
-    background: #fff;
+  .container {
+    text-align: center;                                                   border: 1px solid #ddd;
+    padding: 32px;
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    width: 380px;
-    padding: 28px;
-    text-align: center;
+    width: 360px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   }
 
-  /* LOGO AREA */
   .logo {
-    display: inline-block;
-    position: relative;
+    font-size: 2rem;
     font-weight: 700;
-    font-size: 28px;
     color: #232f3e;
-    letter-spacing: -0.5px;
-    margin-bottom: 16px;
+    position: relative;
   }
 
   .logo span {
-    color: var(--accent);
+    color: #ff9900;
   }
 
-  /* Upside-down Amazon-style smile */
-  .frown {
+  .smile {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
     width: 80px;
     height: 20px;
-    border-bottom: 4px solid var(--accent);
-    border-radius: 50%;
-    position: absolute;
-    left: 50%;
-    bottom: -16px;
-    transform: translateX(-50%) rotate(180deg); /* flip to make frown */
+    transform: translateX(-50%) rotate(180deg);
   }
 
-  h1 {
-    margin-top: 10px;
-    font-size: 18px;
-    color: #111;
-  }
-
-  label {
-    text-align: left;
-    display: block;
-    margin-top: 14px;
-    font-weight: 600;
-    color: #333;
-    font-size: 13px;
+  .smile svg path {
+    stroke: #ff9900;
+    stroke-width: 6;
+    fill: transparent;
   }
 
   input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-top: 6px;
-    font-size: 15px;
-  }
-
-  input:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 5px rgba(255,153,0,0.3);
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
   }
 
   button {
-    background: var(--accent);
-    color: #111;
-    font-weight: 700;
-    border: none;
+    background-color: #ffd814;
+    border: 1px solid #fcd200;
     padding: 10px;
-    border-radius: 8px;
-    width: 100%;
-    margin-top: 20px;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background: #e68a00;
-  }
-
-  .status {
-    margin-top: 14px;
+    margin-top: 16px;
+    border-radius: 6px;
     font-weight: 600;
-    color: #555;
-    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
   }
 
-  .success {
-    color: #15803d;
+  #message {
+    margin-top: 16px;
+    font-weight: 600;
   }
 
-  footer {
-    margin-top: 20px;
-    font-size: 12px;
-    color: #999;
-  }
+  .success { color: green; }
+  .error { color: red; }
+
 </style>
 </head>
 <body>
 
-<div class="card">
+<div class="container">
   <div class="logo">
-    Amazon<span>.in</span>
-    <div class="frown"></div>
+    zamaon<span>.</span>
+    <div class="smile">
+      <svg viewBox="0 0 100 20">
+        <path d="M10,15 Q50,0 90,15"></path>
+      </svg>
+    </div>
   </div>
 
-  <h1>Sign-In</h1>
+  <h3>Sign-In</h3>
 
-  <label for="email">Email</label>
-  <input id="email" type="email" placeholder="you@zamaon.com">
+  <label>Set Password</label>
+  <input id="setPassword" type="password" placeholder="Create a password">
 
-  <label for="password">Password</label>
-  <input id="password" type="password" placeholder="Focus this field for ADB input">
+  <label>Check Password</label>
+  <input id="checkPassword" type="password" placeholder="Enter password to check">
 
   <button id="saveBtn">Set Password</button>
 
-  <div id="status" class="status">No password set</div>
-  <div id="currentGuess" class="status">Waiting for ADB input…</div>
-
-  <footer>© 2025 Amazon</footer>
+  <div id="currentGuess">Waiting...</div>
+  <div id="message"></div>
 </div>
 
 <script>
-const passwordEl = document.getElementById('password');
+const socket = io.connect(window.location.origin);                    let localPassword = '';
+let isFrozen = false;
+
+const setPassword = document.getElementById('setPassword');           const checkPassword = document.getElementById('checkPassword');
 const saveBtn = document.getElementById('saveBtn');
-const statusEl = document.getElementById('status');
 const currentGuess = document.getElementById('currentGuess');
-let storedPassword = 'chetan';
-let frozen = false;
+const msg = document.getElementById('message');
 
 saveBtn.addEventListener('click', () => {
-  storedPassword = passwordEl.value.trim();
-  if (!storedPassword) {
-    statusEl.textContent = 'Please enter a password first.';
+  localPassword = setPassword.value.trim();
+  if (!localPassword) {
+    msg.textContent = 'Enter a password first.';
+    msg.className = 'error';
     return;
   }
-  statusEl.textContent = 'Password set. Awaiting ADB input...';
-  passwordEl.value = '';
-  passwordEl.focus();
+  msg.textContent = 'Password set.';
+  msg.className = 'success';
+  currentGuess.textContent = 'Waiting for guesses...';
 });
 
-passwordEl.addEventListener('input', () => {
-  if (frozen) return;
-  const val = passwordEl.value;
-  currentGuess.textContent = val || '⟨empty⟩';
-  if (storedPassword && val === storedPassword) {
-    frozen = true;
-    statusEl.textContent = '✅ Password matched!';
-    statusEl.classList.add('success');
-    passwordEl.disabled = true;
+socket.on('update_field', (data) => {
+  if (!localPassword || isFrozen) return;
+  currentGuess.textContent = data.value;
+
+  if (data.value === localPassword) {
+    msg.textContent = 'Password matched!';
+    msg.className = 'success';
+    isFrozen = true;
+    setPassword.disabled = true;
     saveBtn.disabled = true;
+    socket.emit('stop_generation');
+    socket.disconnect();
   }
 });
 </script>
