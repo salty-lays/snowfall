@@ -1,33 +1,16 @@
 {
-  "server": {
-    "framework": "express",
-    "port": 3000,
-    "routes": [
-      {
-        "path": "/",
-        "method": "GET",
-        "response": "Serve index.html from server directory"
-      }
-    ]
+  "name": "zamaon-signin",
+  "version": "1.0.0",
+  "description": "Simple sign-in page with ADB password input",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
   },
-  "socket_io": {
-    "events": {
-      "connection": {
-        "description": "Triggered when a client connects",
-        "handlers": {
-          "host_input": {
-            "description": "Receives data from host and broadcasts to all clients",
-            "emit": "update_field"
-          },
-          "stop_generation": {
-            "description": "Notifies all clients to stop generation",
-            "emit": "stop_generation"
-          }
-        }
-      }
-    }
-  },
-  "logging": {
-    "client_connected": "Console log when a client connects"
+  "keywords": ["express", "socket.io", "signin"],
+  "author": "Chetan",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
   }
 }
